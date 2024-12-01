@@ -10,26 +10,23 @@ async function predictClassification(model, image) {
       .toFloat();
 
     const prediction = model.predict(tensor);
-    const score = await prediction.array();
-    const confidenceScore = Math.max(...score[0]) * 100;
+    const score = await prediction.array();  // Mendapatkan array hasil prediksi
+    const confidenceScore = Math.max(...score[0]) * 100; // Menyimpan nilai probabilitas tertinggi
 
-    const classes = [
-      "Melanocytic nevus",
-      "Squamous cell carcinoma",
-      "Vascular lesion",
-    ];
-    const classResult = tf.argMax(prediction, 1).dataSync()[0];
-    const label = classes[classResult];
-
-    let suggestion;
+    // Menentukan hasil klasifikasi berdasarkan probabilitas
     let result;
+    let suggestion;
 
-    if (label === "Melanocytic nevus" || label === "Squamous cell carcinoma") {
+    // Ambil probabilitas dari hasil prediksi
+    const cancerProb = score[0][0];  // Asumsi cancer adalah kelas pertama (index 0)
+    const nonCancerProb = score[0][1];  // Asumsi non-cancer adalah kelas kedua (index 1)
+
+    if (cancerProb > 0.5) {
       result = "Cancer";
       suggestion = "Segera periksa ke dokter!";
-    } else if (label === "Vascular lesion") {
+    } else {
       result = "Non-cancer";
-      suggestion = "Anda sehat!";
+      suggestion = "Penyakit kanker tidak terdeteksi.";
     }
 
     return { result, suggestion, confidenceScore };
